@@ -1,5 +1,7 @@
 package micro
 
+// micro service 模块的实现
+
 import (
 	"os"
 	"os/signal"
@@ -13,7 +15,7 @@ import (
 	"github.com/asim/go-micro/v3/debug/stats"
 	"github.com/asim/go-micro/v3/debug/trace"
 	"github.com/asim/go-micro/v3/logger"
-	"github.com/asim/go-micro/v3/plugins"
+	plugin "github.com/asim/go-micro/v3/plugins"
 	"github.com/asim/go-micro/v3/server"
 	"github.com/asim/go-micro/v3/store"
 	signalutil "github.com/asim/go-micro/v3/util/signal"
@@ -30,7 +32,7 @@ func newService(opts ...Option) Service {
 	service := new(service)
 	options := newOptions(opts...)
 
-	// service name
+	// 服务名称
 	serviceName := options.Server.Options().Name
 
 	// 包装客户端以在任何调用中注入From-Service头
@@ -53,9 +55,7 @@ func (s *service) Name() string {
 	return s.opts.Server.Options().Name
 }
 
-// Init initialises options. Additionally it calls cmd.Init
-// which parses command line flags. cmd.Init is only called
-// on first Init.
+// Init 初始化 options，此外，还会调用 cmd.init，它还会解析命令行的 flags。 cmd.Init 只会在首次执行 Init 时调用。
 func (s *service) Init(opts ...Option) {
 	// process options
 	for _, o := range opts {
@@ -63,30 +63,30 @@ func (s *service) Init(opts ...Option) {
 	}
 
 	s.once.Do(func() {
-		// setup the plugins
+		// 设置 plugin
 		for _, p := range strings.Split(os.Getenv("MICRO_PLUGIN"), ",") {
 			if len(p) == 0 {
 				continue
 			}
 
-			// load the plugin
+			// 加载 plugin
 			c, err := plugin.Load(p)
 			if err != nil {
 				logger.Fatal(err)
 			}
 
-			// initialise the plugin
+			// 初始化 plugin
 			if err := plugin.Init(c); err != nil {
 				logger.Fatal(err)
 			}
 		}
 
-		// set cmd name
+		// 设置 cmd 名称
 		if len(s.opts.Cmd.App().Name) == 0 {
 			s.opts.Cmd.App().Name = s.Server().Options().Name
 		}
 
-		// Initialise the command flags, overriding new service
+		// 初始化命令的 flags, 覆盖新服务
 		if err := s.opts.Cmd.Init(
 			cmd.Auth(&s.opts.Auth),
 			cmd.Broker(&s.opts.Broker),
@@ -102,11 +102,15 @@ func (s *service) Init(opts ...Option) {
 			logger.Fatal(err)
 		}
 
-		// Explicitly set the table name to the service name
+		// 显示的将表名设置为服务名
 		name := s.opts.Cmd.App().Name
 		s.opts.Store.Init(store.Table(name))
 	})
 }
+
+// ########################################################## //
+// #################### service 接口的实现 #################### //
+// ########################################################## //
 
 func (s *service) Options() Options {
 	return s.opts
@@ -125,16 +129,19 @@ func (s *service) String() string {
 }
 
 func (s *service) Start() error {
+	// 执行启动前的钩子函数
 	for _, fn := range s.opts.BeforeStart {
 		if err := fn(); err != nil {
 			return err
 		}
 	}
 
+	// 服务启动
 	if err := s.opts.Server.Start(); err != nil {
 		return err
 	}
 
+	// 执行启动后执行的钩子函数
 	for _, fn := range s.opts.AfterStart {
 		if err := fn(); err != nil {
 			return err
@@ -147,16 +154,19 @@ func (s *service) Start() error {
 func (s *service) Stop() error {
 	var gerr error
 
+	// 执行停止前执行的钩子函数
 	for _, fn := range s.opts.BeforeStop {
 		if err := fn(); err != nil {
 			gerr = err
 		}
 	}
 
+	// 服务终止
 	if err := s.opts.Server.Stop(); err != nil {
 		return err
 	}
 
+	// 执行停止后执行的钩子函数
 	for _, fn := range s.opts.AfterStop {
 		if err := fn(); err != nil {
 			gerr = err
@@ -167,7 +177,7 @@ func (s *service) Stop() error {
 }
 
 func (s *service) Run() error {
-	// register the debug handler
+	// 注册调试处理
 	s.opts.Server.Handle(
 		s.opts.Server.NewHandler(
 			handler.NewHandler(s.opts.Client),
@@ -175,11 +185,11 @@ func (s *service) Run() error {
 		),
 	)
 
-	// start the profiler
+	// 启动服务分析器
 	if s.opts.Profile != nil {
-		// to view mutex contention
+		// 查看互斥锁的争用情况
 		rtime.SetMutexProfileFraction(5)
-		// to view blocking profile
+		// 查看阻塞配置文件
 		rtime.SetBlockProfileRate(1)
 
 		if err := s.opts.Profile.Start(); err != nil {
@@ -202,11 +212,15 @@ func (s *service) Run() error {
 	}
 
 	select {
-	// wait on kill signal
+	// 等待关闭信号
 	case <-ch:
-	// wait on context cancel
+	// 等待上下文退出信号
 	case <-s.opts.Context.Done():
 	}
 
 	return s.Stop()
 }
+
+// ########################################################## //
+// #################### service 接口的实现 #################### //
+// ########################################################## //

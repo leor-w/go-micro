@@ -1,4 +1,4 @@
-// Package profile is for profilers
+// Package profile 用于分析器
 package profile
 
 type Profile interface {
@@ -29,13 +29,13 @@ func (p *noop) String() string {
 }
 
 type Options struct {
-	// Name to use for the profile
+	// Name 用于配置文件的名称
 	Name string
 }
 
 type Option func(o *Options)
 
-// Name of the profile
+// Name 配置文件的名称
 func Name(n string) Option {
 	return func(o *Options) {
 		o.Name = n

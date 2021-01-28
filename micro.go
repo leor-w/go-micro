@@ -1,4 +1,4 @@
-// Package micro is a pluggable framework for microservices
+// Package micro 是用于微服务的可插入框架
 package micro
 
 import (
@@ -10,35 +10,33 @@ import (
 
 type serviceKey struct{}
 
-// Service is an interface that wraps the lower level libraries
-// within go-micro. Its a convenience method for building
-// and initialising services.
+// Service 是一个接口，它将较为底层的库包装在 go-micro 中。这是一种构建和初始化服务比较方便的一种方法。
 type Service interface {
-	// The service name
+	// service 的名称
 	Name() string
-	// Init initialises options
+	// Init 初始化 options
 	Init(...Option)
-	// Options returns the current options
+	// Options 返回当前的 options
 	Options() Options
-	// Client is used to call services
+	// Client 是用户调用服务的入口
 	Client() client.Client
-	// Server is for handling requests and events
+	// Server 是用来处理请求和事件的
 	Server() server.Server
-	// Run the service
+	// Run 运行服务
 	Run() error
-	// The service implementation
+	// 服务的名称
 	String() string
 }
 
-// Function is a one time executing Service
+// Function 为单次执行 Service
 type Function interface {
-	// Inherits Service interface
+	// 继承 Service 的接口
 	Service
-	// Done signals to complete execution
+	// Done 执行完成的信号
 	Done() error
-	// Handle registers an RPC handler
+	// Handle 注册 RPC 处理程序
 	Handle(v interface{}) error
-	// Subscribe registers a subscriber
+	// Subscribe 注册一个订阅者
 	Subscribe(topic string, v interface{}) error
 }
 
@@ -62,13 +60,13 @@ type Resource interface {
 }
 */
 
-// Event is used to publish messages to a topic
+// Event 用于向主题发布消息
 type Event interface {
-	// Publish publishes a message to the event topic
+	// Publish 向事件主题发布消息
 	Publish(ctx context.Context, msg interface{}, opts ...client.PublishOption) error
 }
 
-// Type alias to satisfy the deprecation
+// 类型别名以满足弃用要求
 type Publisher = Event
 
 type Option func(*Options)
@@ -77,28 +75,28 @@ var (
 	HeaderPrefix = "Micro-"
 )
 
-// NewService creates and returns a new Service based on the packages within.
+// NewService 根据 option 创建并返回一个新的服务。
 func NewService(opts ...Option) Service {
 	return newService(opts...)
 }
 
-// FromContext retrieves a Service from the Context.
+// FromContext 从上下文中检索服务。
 func FromContext(ctx context.Context) (Service, bool) {
 	s, ok := ctx.Value(serviceKey{}).(Service)
 	return s, ok
 }
 
-// NewContext returns a new Context with the Service embedded within it.
+// NewContext 返回嵌入服务的新上下文。
 func NewContext(ctx context.Context, s Service) context.Context {
 	return context.WithValue(ctx, serviceKey{}, s)
 }
 
-// NewFunction returns a new Function for a one time executing Service
+// NewFunction 为一个单次执行的 Service 返会一个 Function
 func NewFunction(opts ...Option) Function {
 	return newFunction(opts...)
 }
 
-// NewEvent creates a new event publisher
+// NewEvent 创建一个新的事件发布者
 func NewEvent(topic string, c client.Client) Event {
 	if c == nil {
 		c = client.NewClient()
@@ -106,17 +104,17 @@ func NewEvent(topic string, c client.Client) Event {
 	return &event{c, topic}
 }
 
-// Deprecated: NewPublisher returns a new Publisher
+// 已弃用: NewPublisher 返回一个新的 Publisher
 func NewPublisher(topic string, c client.Client) Event {
 	return NewEvent(topic, c)
 }
 
-// RegisterHandler is syntactic sugar for registering a handler
+// RegisterHandler 是用于注册处理程序的语法糖
 func RegisterHandler(s server.Server, h interface{}, opts ...server.HandlerOption) error {
 	return s.Handle(s.NewHandler(h, opts...))
 }
 
-// RegisterSubscriber is syntactic sugar for registering a subscriber
+// RegisterSubscriber 是用于注册订户的语法糖
 func RegisterSubscriber(topic string, s server.Server, h interface{}, opts ...server.SubscriberOption) error {
 	return s.Subscribe(s.NewSubscriber(topic, h, opts...))
 }
