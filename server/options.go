@@ -28,21 +28,20 @@ type Options struct {
 	HdlrWrappers []HandlerWrapper
 	SubWrappers  []SubscriberWrapper
 
-	// RegisterCheck runs a check function before registering the service
+	// RegisterCheck 注册服务前运行检查功能
 	RegisterCheck func(context.Context) error
-	// The register expiry time
+	// 寄存器失效时间
 	RegisterTTL time.Duration
-	// The interval on which to register
+	// 注册的间隔事件
 	RegisterInterval time.Duration
 
-	// The router for requests
+	// 请求的路由器
 	Router Router
 
-	// TLSConfig specifies tls.Config for secure serving
+	// TLSConfig TLS 配置。
 	TLSConfig *tls.Config
 
-	// Other options for implementations of the interface
-	// can be stored in a context
+	// 接口实现的其他选项可以存储在上下文中
 	Context context.Context
 }
 
@@ -93,126 +92,124 @@ func newOptions(opt ...Option) Options {
 	return opts
 }
 
-// Server name
+// Server 服务器名称
 func Name(n string) Option {
 	return func(o *Options) {
 		o.Name = n
 	}
 }
 
-// Unique server id
+// 唯一的服务器 ID
 func Id(id string) Option {
 	return func(o *Options) {
 		o.Id = id
 	}
 }
 
-// Version of the service
+// Version 服务的版本
 func Version(v string) Option {
 	return func(o *Options) {
 		o.Version = v
 	}
 }
 
-// Address to bind to - host:port
+// Address 服务的 地址与端口 host:port
 func Address(a string) Option {
 	return func(o *Options) {
 		o.Address = a
 	}
 }
 
-// The address to advertise for discovery - host:port
+// 用于服务发现的地址 - host:port
 func Advertise(a string) Option {
 	return func(o *Options) {
 		o.Advertise = a
 	}
 }
 
-// Broker to use for pub/sub
+// Broker 用于发布和订阅的代理器
 func Broker(b broker.Broker) Option {
 	return func(o *Options) {
 		o.Broker = b
 	}
 }
 
-// Codec to use to encode/decode requests for a given content type
+// Codec 用于对给定内容类型的请求进行编码/解码
 func Codec(contentType string, c codec.NewCodec) Option {
 	return func(o *Options) {
 		o.Codecs[contentType] = c
 	}
 }
 
-// Context specifies a context for the service.
-// Can be used to signal shutdown of the service
-// Can be used for extra option values.
+// Context 为 service 指定一个上下文。用于给服务发送关闭信号，和为服务添加额外的选项值。
 func Context(ctx context.Context) Option {
 	return func(o *Options) {
 		o.Context = ctx
 	}
 }
 
-// Registry used for discovery
+// Registry 用于服务发现
 func Registry(r registry.Registry) Option {
 	return func(o *Options) {
 		o.Registry = r
 	}
 }
 
-// Tracer mechanism for distributed tracking
+// Tracer 分布式的服务追踪
 func Tracer(t trace.Tracer) Option {
 	return func(o *Options) {
 		o.Tracer = t
 	}
 }
 
-// Transport mechanism for communication e.g http, rabbitmq, etc
+// Transport 通信机制，如 http, rabbitmq, etc
 func Transport(t transport.Transport) Option {
 	return func(o *Options) {
 		o.Transport = t
 	}
 }
 
-// Metadata associated with the server
+// Metadata 关联元数据与服务器
 func Metadata(md map[string]string) Option {
 	return func(o *Options) {
 		o.Metadata = md
 	}
 }
 
-// RegisterCheck run func before registry service
+// RegisterCheck 在注册之前执行 fn。
 func RegisterCheck(fn func(context.Context) error) Option {
 	return func(o *Options) {
 		o.RegisterCheck = fn
 	}
 }
 
-// Register the service with a TTL
+// 指定注册服务的 TTL
 func RegisterTTL(t time.Duration) Option {
 	return func(o *Options) {
 		o.RegisterTTL = t
 	}
 }
 
-// Register the service with at interval
+// 注册服务的间隔
 func RegisterInterval(t time.Duration) Option {
 	return func(o *Options) {
 		o.RegisterInterval = t
 	}
 }
 
-// TLSConfig specifies a *tls.Config
+// TLSConfig 指定一个 *tls.Config
 func TLSConfig(t *tls.Config) Option {
 	return func(o *Options) {
-		// set the internal tls
+		// 设置到 options 内部的 tls
 		o.TLSConfig = t
 
-		// set the default transport if one is not
-		// already set. Required for Init call below.
+		// 如果 options 没有设置默认传输方式，则设置一个传输方式
+		// 下面的 Init 需要设置一个默认的传输方式
 		if o.Transport == nil {
 			o.Transport = transport.DefaultTransport
 		}
 
-		// set the transport tls
+		// 设置 tls 到传输方式
 		o.Transport.Init(
 			transport.Secure(true),
 			transport.TLSConfig(t),
@@ -220,17 +217,16 @@ func TLSConfig(t *tls.Config) Option {
 	}
 }
 
-// WithRouter sets the request router
+// WithRouter 设置请求的路由
 func WithRouter(r Router) Option {
 	return func(o *Options) {
 		o.Router = r
 	}
 }
 
-// Wait tells the server to wait for requests to finish before exiting
-// If `wg` is nil, server only wait for completion of rpc handler.
-// For user need finer grained control, pass a concrete `wg` here, server will
-// wait against it on stop.
+// Wait 告诉服务器在退出之前要等待请求完成，如果 `wg` 为空，
+// 服务器只等待 rpc 处理完成，如果需要更细粒度控制的用户，
+// 需要在这里传递一个具体的 `wg`，服务器将在停止时等待它的完成。
 func Wait(wg *sync.WaitGroup) Option {
 	return func(o *Options) {
 		if o.Context == nil {
@@ -243,7 +239,7 @@ func Wait(wg *sync.WaitGroup) Option {
 	}
 }
 
-// Adds a handler Wrapper to a list of options passed into the server
+// WrapHandler 添加一个 handler 的包装器并传递到服务的 options 列表
 func WrapHandler(w HandlerWrapper) Option {
 	return func(o *Options) {
 		o.HdlrWrappers = append(o.HdlrWrappers, w)
@@ -251,6 +247,7 @@ func WrapHandler(w HandlerWrapper) Option {
 }
 
 // Adds a subscriber Wrapper to a list of options passed into the server
+// WrapSubscriber 添加一个 subscriber 的包装器并传递到服务器的 options 列表
 func WrapSubscriber(w SubscriberWrapper) Option {
 	return func(o *Options) {
 		o.SubWrappers = append(o.SubWrappers, w)

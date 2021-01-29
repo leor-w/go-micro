@@ -45,7 +45,7 @@ func newService(opts ...Option) Service {
 		server.WrapHandler(wrapper.TraceHandler(trace.DefaultTracer)),
 	)
 
-	// set opts
+	// 设置服务的选项
 	service.opts = options
 
 	return service

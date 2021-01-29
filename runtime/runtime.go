@@ -1,4 +1,4 @@
-// Package runtime is a service runtime manager
+// Package runtime 是一个运行服务时管理器
 package runtime
 
 import (
@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	// DefaultRuntime is default micro runtime
+	// DefaultRuntime 默认的 micro 运行时服务
 	DefaultRuntime Runtime = NewRuntime()
-	// DefaultName is default runtime service name
+	// DefaultName 默认的运行时服务名称
 	DefaultName = "go.micro.runtime"
 
 	ErrAlreadyExists = errors.New("already exists")
@@ -37,7 +37,7 @@ type Runtime interface {
 	String() string
 }
 
-// Stream returns a log stream
+// LogStream 返回一个日志流
 type LogStream interface {
 	Error() error
 	Chan() chan LogRecord
@@ -50,26 +50,28 @@ type LogRecord struct {
 }
 
 // Scheduler is a runtime service scheduler
+// Scheduler 为运行时的服务调度程序
 type Scheduler interface {
-	// Notify publishes schedule events
+	// Notify 发布调度事件
 	Notify() (<-chan Event, error)
-	// Close stops the scheduler
+	// Close 关闭服务调度
 	Close() error
 }
 
-// EventType defines schedule event
+// EventType 定义调度事件类型
 type EventType int
 
 const (
-	// Create is emitted when a new build has been craeted
+	// Create 创建新构建时的类型
 	Create EventType = iota
 	// Update is emitted when a new update become available
+	// 当新的更新可用时，发出的类型
 	Update
-	// Delete is emitted when a build has been deleted
+	// Delete 删除构建时，发出的类型
 	Delete
 )
 
-// String returns human readable event type
+// String 返回事件类型名称
 func (t EventType) String() string {
 	switch t {
 	case Create:
@@ -83,28 +85,28 @@ func (t EventType) String() string {
 	}
 }
 
-// Event is notification event
+// Event 是通知事件
 type Event struct {
-	// ID of the event
+	// ID 事件的ID
 	ID string
-	// Type is event type
+	// Type 事件的类型
 	Type EventType
-	// Timestamp is event timestamp
+	// Timestamp 事件的事件戳
 	Timestamp time.Time
-	// Service the event relates to
+	// Service 与事件关联的服务
 	Service *Service
-	// Options to use when processing the event
+	// Options 处理事件的选项
 	Options *CreateOptions
 }
 
-// Service is runtime service
+// Service 运行时服务
 type Service struct {
-	// Name of the service
+	// Name 服务名称
 	Name string
-	// Version of the service
+	// Version 服务版本
 	Version string
-	// url location of source
+	// URL 源的位置
 	Source string
-	// Metadata stores metadata
+	// Metadata 元数据的储存对象
 	Metadata map[string]string
 }

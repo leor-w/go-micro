@@ -4,24 +4,18 @@ import (
 	"context"
 )
 
-// HandlerFunc represents a single method of a handler. It's used primarily
-// for the wrappers. What's handed to the actual method is the concrete
-// request and response types.
+// HandlerFunc 请求处理的包装器。接收的参数为具体 request 与 response。
 type HandlerFunc func(ctx context.Context, req Request, rsp interface{}) error
 
-// SubscriberFunc represents a single method of a subscriber. It's used primarily
-// for the wrappers. What's handed to the actual method is the concrete
-// publication message.
+// SubscriberFunc 订阅服务器的包装器，接收的实际参数为具体发布的消息
 type SubscriberFunc func(ctx context.Context, msg Message) error
 
-// HandlerWrapper wraps the HandlerFunc and returns the equivalent
+// HandlerWrapper 包装一个 HandlerFunc 和返回一个对等的 HandlerFunc
 type HandlerWrapper func(HandlerFunc) HandlerFunc
 
-// SubscriberWrapper wraps the SubscriberFunc and returns the equivalent
+// SubscriberWrapper 包装一个 SubscriberFunc 和返回一个对等的 SubscriberFunc
 type SubscriberWrapper func(SubscriberFunc) SubscriberFunc
 
-// StreamWrapper wraps a Stream interface and returns the equivalent.
-// Because streams exist for the lifetime of a method invocation this
-// is a convenient way to wrap a Stream as its in use for trace, monitoring,
-// metrics, etc.
+// StreamWrapper 包装一个 Stream 接口并返回一个对等的 Stream。
+// 因为流在方法调用的生命周期内都存在，可以包装服务跟踪、监控、统计等各种流
 type StreamWrapper func(Stream) Stream

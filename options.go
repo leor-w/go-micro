@@ -144,7 +144,6 @@ func Store(s store.Store) Option {
 func Registry(r registry.Registry) Option {
 	return func(o *Options) {
 		o.Registry = r
-		// Update Client and Server
 		// 更新 客户端 和 服务器
 		o.Client.Init(client.Registry(r))
 		o.Server.Init(server.Registry(r))

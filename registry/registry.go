@@ -1,4 +1,4 @@
-// Package registry is an interface for service discovery
+// Package registry 为服务发现的接口
 package registry
 
 import (
@@ -8,9 +8,9 @@ import (
 var (
 	DefaultRegistry = NewRegistry()
 
-	// Not found error when GetService is called
+	// 调用 GetService 时没有找到对应服务时的错误
 	ErrNotFound = errors.New("service not found")
-	// Watcher stopped error when watcher is stopped
+	// 当 Watcher 停止时发生的错误
 	ErrWatcherStopped = errors.New("watcher stopped")
 )
 
@@ -66,27 +66,27 @@ type GetOption func(*GetOptions)
 
 type ListOption func(*ListOptions)
 
-// Register a service node. Additionally supply options such as TTL.
+// Register 注册一个服务节点。另外，可以提供诸如 TTL 之类的选项。
 func Register(s *Service, opts ...RegisterOption) error {
 	return DefaultRegistry.Register(s, opts...)
 }
 
-// Deregister a service node
+// Deregister 注销服务节点
 func Deregister(s *Service) error {
 	return DefaultRegistry.Deregister(s)
 }
 
-// Retrieve a service. A slice is returned since we separate Name/Version.
+// GetService 检索服务。由于分割了 Name/Version，所以返回的是 Service 的切片。
 func GetService(name string) ([]*Service, error) {
 	return DefaultRegistry.GetService(name)
 }
 
-// List the services. Only returns service names
+// 列出服务列表，只返回服务的名称
 func ListServices() ([]*Service, error) {
 	return DefaultRegistry.ListServices()
 }
 
-// Watch returns a watcher which allows you to track updates to the registry.
+// Watch 返回一个监视器，可以用来跟踪注册表的更新。
 func Watch(opts ...WatchOption) (Watcher, error) {
 	return DefaultRegistry.Watch(opts...)
 }
